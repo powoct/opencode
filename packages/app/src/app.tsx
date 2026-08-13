@@ -35,6 +35,7 @@ import {
   onCleanup,
   type ParentProps,
   Show,
+  untrack,
 } from "solid-js"
 import { Dynamic } from "solid-js/web"
 import { makeEventListener } from "@solid-primitives/event-listener"
@@ -97,7 +98,14 @@ const SessionRoute = () => {
     if (!settings.general.newLayoutDesigns()) return
     if (params.id || search.draftId) return
     if (!tabs.ready() || !sdk().directory) return
-    tabs.newDraft({ server: server.key, directory: sdk().directory }, search.prompt)
+    const directory = sdk().directory
+    const serverKey = server.key
+    untrack(() => {
+      const projects = server.projects.forServer(serverKey)
+      projects.open(directory)
+      projects.touch(directory)
+      void tabs.newDraft({ server: serverKey, directory }, search.prompt)
+    })
   })
 
   return (
