@@ -30,6 +30,7 @@ test("registers a direct directory route as an opened project", async ({ page })
   await page.goto(`/${base64Encode(directory)}/session`)
 
   await expect(page).toHaveURL(/\/new-session\?draftId=/)
+  const firstDraft = page.url()
   await expect(page.locator('[data-component="prompt-input-v2"]')).toBeVisible()
   await expect
     .poll(() =>
@@ -58,9 +59,12 @@ test("registers a direct directory route as an opened project", async ({ page })
   const titlebar = page.locator('[data-slot="titlebar-v2"]')
   await titlebar.getByRole("button", { name: "Home" }).click()
   await expect(page).toHaveURL("/")
-  await expect(page.locator('[data-component="home-project-row"]')).toContainText("DirectRoute")
+  const project = page.locator('[data-component="home-project-row"]')
+  await expect(project).toHaveCount(1)
+  await expect(project.locator("span", { hasText: /^DirectRoute$/ })).toBeVisible()
 
   await titlebar.getByRole("button", { name: "New session" }).click()
   await expect(page).toHaveURL(/\/new-session\?draftId=/)
+  expect(page.url()).not.toBe(firstDraft)
   await expect(page.locator('[data-component="prompt-input-v2"]')).toBeVisible()
 })
